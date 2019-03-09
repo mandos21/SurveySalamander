@@ -1,0 +1,5 @@
+to access mysql database
+
+mysql -u survey -p
+
+password in slack

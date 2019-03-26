@@ -1,92 +1,99 @@
-<!DOCTYPE HTML>
-<!--
-	Theory by TEMPLATED
-	templated.co @templatedco
-	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
--->
+<?PHP
+require '../../configure.php';
+	if (isset($_GET['h1'])) {
+		$qID = $_GET['h1'];
+	} else {
+		$qID = 1;
+	}
+
+	$question = 'Question not set';
+	$answerA = 'unchecked';
+	$answerB = 'unchecked';
+	$answerC = 'unchecked';
+
+	$A = "";
+	$B = "";
+	$C = "";
+
+	$database = "survey";
+
+	$db_found = new mysqli(DB_SERVER, DB_USER, DB_PASS, $database );
+
+	if ($db_found) {
+
+		$stmt = $db_found->prepare("SELECT ID, Question, OptionA, OptionB, OptionC FROM tblsurvey WHERE ID = ?");
+
+		if ($stmt) {
+			$stmt->bind_param('i', $qID);
+			$stmt->execute();
+			$res = $stmt->get_result();
+
+			if ($res->num_rows > 0) {
+
+				$row = $res->fetch_assoc();
+
+				$qID = $row['ID'];
+				$question = $row['Question'];
+				$A = $row['OptionA'];
+				$B = $row['OptionB'];
+				$C = $row['OptionC'];
+
+			}
+			else {
+				print "Error - No rows";
+			}
+		}
+		else {
+			print "Error - DB ERROR";
+		}
+
+	}
+	else {
+		print "Error getting Survey";
+	}
+
+
+?>
 <html>
-	<head>
-		<title>Generic - Theory by TEMPLATED</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<link rel="stylesheet" href="assets/css/main.css" />
-	</head>
-	<body class="subpage">
+<head>
+<title>Survey</title>
+</head>
 
-		<!-- Header -->
-			<header id="header">
-				<div class="inner">
-					<a href="index.html" class="logo">Theory</a>
-					<nav id="nav">
-						<a href="index.html">Home</a>
-						<a href="generic.html">Generic</a>
-						<a href="elements.html">Elements</a>
-					</nav>
-					<a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
-				</div>
-			</header>
 
-		<!-- Three -->
-			<section id="three" class="wrapper">
-				<div class="inner">
-					<header class="align-center">
-						<h2>Nunc Dignissim</h2>
-						<p>Aliquam erat volutpat nam dui </p>
-					</header>
-					<p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
-					<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.</p>
-					<div class="flex flex-2">
-						<article>
-							<div class="image fit">
-								<img src="images/pic01.jpg" alt="Pic 01" />
-							</div>
-							<header>
-								<h3>Praesent placerat magna</h3>
-							</header>
-							<p>Praesent dapibus, neque id cursus faucibus, tortor neque egestas augue, eu vulputate magna eros eu erat. Aliquam erat volutpat. Nam dui mi, tincidunt quis, accumsan porttitor lorem ipsum.</p>
-							<footer>
-								<a href="#" class="button special">More</a>
-							</footer>
-						</article>
-						<article>
-							<div class="image fit">
-								<img src="images/pic02.jpg" alt="Pic 02" />
-							</div>
-							<header>
-								<h3>Fusce pellentesque tempus</h3>
-							</header>
-							<p>Sed adipiscing ornare risus. Morbi est est, blandit sit amet, sagittis vel, euismod vel, velit. Pellentesque egestas sem. Suspendisse commodo ullamcorper magna non comodo sodales tempus.</p>
-							<footer>
-								<a href="#" class="button special">More</a>
-							</footer>
-						</article>
-					</div>
-				</div>
-			</section>
+<body>
 
-		<!-- Footer -->
-			<footer id="footer">
-				<div class="inner">
-					<div class="flex">
-						<div class="copyright">
-							&copy; Untitled. Design: <a href="https://templated.co">TEMPLATED</a>. Images: <a href="https://unsplash.com">Unsplash</a>.
-						</div>
-						<ul class="icons">
-							<li><a href="#" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
-							<li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
-							<li><a href="#" class="icon fa-linkedin"><span class="label">linkedIn</span></a></li>
-							<li><a href="#" class="icon fa-pinterest-p"><span class="label">Pinterest</span></a></li>
-							<li><a href="#" class="icon fa-vimeo"><span class="label">Vimeo</span></a></li>
-						</ul>
-					</div>
-				</div>
-			</footer>
+<FORM NAME ="form1" METHOD ="GET" ACTION ="process.php">
 
-		<!-- Scripts -->
-			<script src="assets/js/jquery.min.js"></script>
-			<script src="assets/js/skel.min.js"></script>
-			<script src="assets/js/util.js"></script>
-			<script src="assets/js/main.js"></script>
+<P>
+<?PHP print $question; ?>
+<P>
+<INPUT TYPE = 'Radio' Name ='q'  value= 'A' <?PHP print $answerA; ?>><?PHP print $A; ?>
+<P>
+<INPUT TYPE = 'Radio' Name ='q'  value= 'B' <?PHP print $answerB; ?>><?PHP print $B; ?>
+<P>
+<INPUT TYPE = 'Radio' Name ='q'  value= 'C' <?PHP print $answerC; ?>><?PHP print $C; ?>
+<P>
 
-	</body>
+<INPUT TYPE = "Submit" Name = "Submit1"  VALUE = "Click here to vote">
+<INPUT TYPE = "Hidden" Name = "h1"  VALUE = <?PHP print $qID; ?>>
+</FORM>
+
+
+<FORM NAME ="form2" METHOD ="GET" ACTION ="viewResults.php">
+
+<INPUT TYPE = "Submit" Name = "Submit2"  VALUE = "View results">
+<INPUT TYPE = "Hidden" Name = "h1"  VALUE = <?PHP print $qID; ?>>
+</FORM>
+</body>
 </html>
+
+
+
+
+
+
+
+
+
+
+

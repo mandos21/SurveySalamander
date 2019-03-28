@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<!--
+	Theory by TEMPLATED
+	templated.co @templatedco
+	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+	
+-->
+<html>
+	<head>
+		<title>Survey Station</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="{{ url_for('static',filename='assets/css/main.css')}}" />
+		<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+	</head>
+	<body>
+
+		<!-- Header -->
+			<header id="header">
+				<div class="inner">
+					<a href="index.html" class="logo">Your Surveys</a>
+					<nav id="nav">
+						<a href="surveybuild.html">Survey Builder</a>
+						<a href="surveyanswer.html">Answer a Survey</a>
+						{% if data %}
+
+						<a href="#"> {{data[0].email}}</a>
+						{% endif %}
+					</nav>
+					<a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+				</div>
+			</header>
+
+		<!-- Banner -->
+		<section id="banner">
+			<p>
+			<br/>
+			</p>
+		</section>
+		<!-- One -->
+			<section id="one" class="wrapper">
+				<div class="inner">
+					<div class="flex flex-3">
+						<article>
+							<header>
+								<h3>Create a Survey<br /></h3>
+							</header>
+							<p>After completion this will be added to your list of surveys below.</p>
+							<footer>
+								<a href="/screate/{{data[0].userid}}" class="button special">&nbsp; &nbsp;  Create  &nbsp; &nbsp;</a>
+							</footer>
+						</article>
+						<article><h2>View and Edit Existing Surveys</h2></article>
+						{% if data %}
+						{% for item in data[1]%}
+						<article>
+							<header>
+								<h3>{{item.surveyname}}<br /></h3>
+							</header>
+							<p>{{item.description}}</p>
+							<footer>
+								<a href="/qredirect/{{item.surveyid}}" class="button special">&nbsp; &nbsp; View  &nbsp; &nbsp;</a>
+							</footer>
+						</article>
+						{% endfor %}
+						{% endif %}
+					</div>
+				</div>
+			</section>
+		
+		<!-- Scripts -->
+			<script src="{{ url_for('static',filename='assets/js/jquery.min.js')}}"></script>
+			<script src="{{ url_for('static',filename='assets/js/skel.min.js')}}"></script>
+			<script src="{{ url_for('static',filename='assets/js/util.js')}}"></script>
+			<script src="{{ url_for('static',filename='assets/js/main.js')}}"></script>
+
+	</body>
+</html>

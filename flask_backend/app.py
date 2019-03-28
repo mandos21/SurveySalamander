@@ -3,10 +3,11 @@ import json
 import os
 import MySQLdb
 from sqlalchemy.sql import func
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, redirect, render_template
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from flask_uploads import IMAGES, UploadSet, configure_uploads
+from passlib.apps import custom_app_context as pwd_context
 
 
 app = Flask(__name__, root_path='/usr/share/webapps/Survey/flask_backend')
@@ -36,40 +37,47 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 ## SQLAlchemy DB classes(map db tables to python objects)
-#TODO implement tables for Users and Ratings
 class Question(db.Model):
     __tablename__ = 'questions'
     questionid = db.Column('question_id', db.Integer, primary_key=True)
     question = db.Column('question', db.String(2000), default=0)
     userid = db.Column('user_id', db.Integer)
     surveyid = db.Column('survey_id',db.Integer)
+    questionnum = db.Column('question_num',db.Integer)
 
 
     def __init__(self, question, userid, surveyid):
         self.question = question
         self.userid = userid
-        self.sruveyid = surveyid
+        self.surveyid = surveyid
+        self.questionnum = questionnum
 
 
 class Survey(db.Model):
     __tablename__ = 'survey'
     surveyid = db.Column('survey_id', db.Integer, primary_key=True)
-    urlinfo = db.Column('urlinfo', db.String(45))
+    userid = db.Column('user_id', db.Integer)
+    surveyname = db.Column('survey_name', db.String(100))
+    description = db.Column('description', db.String(300))
 
 
-    def __init__(self, urlinfo):
-        self.urlinfo = urlinfo
+
+    def __init__(self, userid, surveyname):
+        self.userid = userid
+        self.surveyname = surveyname
+        self.description = description
 
 
 class User(db.Model):
     __tablename__ = 'users'
-    userid = db.Column('users_id', db.Integer, primary_key=True)
+    userid = db.Column('user_id', db.Integer, primary_key=True)
     emailaddress = db.Column('email_address',db.String(60))
-    password = db.column('password',db.String(60))
+    password = db.Column('password',db.String(60))
 
     def __init__(self, emailaddress, password):
         self.password = password
         self.emailaddress = emailaddress
+
 
 class Answer(db.Model):
     __tablename__ = 'answers'
@@ -91,11 +99,11 @@ class QuestionSchema(ma.Schema):
 
 class SurveySchema(ma.Schema):
     class Meta:
-        fields = ('surveyid','urlinfo')
+        fields = ('surveyid','userid','survey_name','description')
 
 class UserSchema(ma.Schema):
     class Meta:
-        fileds = ('userid','emailaddress','password')
+        fields = ('userid','emailaddress','password')
 
 class AnswerSchema(ma.Schema):
     class Meta:
@@ -118,6 +126,24 @@ answers_scheme = AnswerSchema(many = True, strict = True)
 
 ## APP ENDPOINTS:
 
+# Verify Logon
+@app.route('/login', methods=['POST'])
+def login():
+    email = request.form['email']
+    passw = request.form['pass']
+    if(email_in_db(email)):
+        user = User.query.filter(User.emailaddress == email).first()
+        surveys = Survey.query.filter(Survey.userid == user.userid)
+        print("***********************ASS************")
+        print(surveys)
+        if(pwd_context.verify(passw, user.password)):
+            data = [{'userid':user.userid,'email':user.emailaddress},surveys]
+            return render_template('index.html', data = data )
+        else:
+            return redirect('https://www.degenaro.tk/Survey/login/badlogin.html')
+    else:
+        return redirect('https://www.degenaro.tk/Survey/signup/index.html')
+
 # Add Question 
 @app.route('/addquestion', methods=['POST'])
 def add_question():
@@ -127,7 +153,7 @@ def add_question():
     new_question = Question(question, userid, surveyid)
     db.session.add(new_question)
     db.session.commit()
-    return listing_schema.jsonify(new_question)
+    return question_schema.jsonify(new_question)
 
 # Add Survey
 @app.route('/addsurvey', methods=['POST'])
@@ -136,16 +162,24 @@ def add_survey():
     new_survey = Question(urlinfo)
     db.session.add(new_survey)
     db.session.commit()
-    return listing_schema.jsonify(new_survey)
+    return survey_schema.jsonify(new_survey)
 
 @app.route('/adduser', methods=['POST'])
 def add_user():
-    emailaddress = request.json['emailaddress']
-    password = request.json['password']
-    new_user = User(emailaddress, password)
+    emailaddress = request.form['email']
+    password = request.form['pass']
+    rpassword = request.form['repeat-pass']
+    if rpassword != password:
+        return redirect('https://www.degenaro.tk/Survey/login/index.html')
+    hashword = pwd_context.hash(password)
+    new_user = User(emailaddress, hashword)
     db.session.add(new_user)
     db.session.commit()
-    return listing_schema.jsonify(new_user)
+    user_schema.jsonify(new_user)
+
+    surveys = Survey.query.filter(Survey.userid == new_user.userid)
+    data = [{'userid':new_user.userid,'email':emailaddress},surveys]
+    return render_template('/index.html', data = data)
 
 @app.route('/addanswer', methods=['POST'])
 def add_answer():
@@ -155,67 +189,64 @@ def add_answer():
     new_answer = Answer(userid, questionid, surveyid)
     db.session.add(new_answer)
     db.session.commit()
-    return listing_schema.jsonify(new_answer)
+    return answer_schema.jsonify(new_answer)
+
+@app.route('/qredirect/<surveyid>', methods=['GET'])
+def qredirect(surveyid):
+    survey = Survey.query.filter(Survey.surveyid == surveyid).first()
+    user = User.query.filter(User.userid == survey.userid).first() 
+    questions = Question.query.filter(Question.surveyid == surveyid)
+    data = [user,survey,questions]
+    return render_template('questionview.html', data = data)
+
+@app.route('/qedit/<questionid>', methods=['GET'])
+def qedit(questionid):
+    question = Question.query.filter(Question.questionid == questionid).first()    
+    user = User.query.filter(User.userid == question.userid).first()
+    data = [user,question]
+    return render_template('qedit.html',data = data)
 
 
-
-
-#Upload image
-@app.route('/uploads/<listingid>/<index>', methods = ['POST'])
-def upload_image(listingid,index):
-    photo = photos.save(request.files['photo'])
-    imagename = os.path.basename(photo)
-    new_image = Images(imagename,listingid,index)
-    db.session.add(new_image)
-    db.session.commit()
-    return imagename
-
-# Get image from listing
-@app.route('/images/<listingid>/<index>', methods = ['GET'])
-def get_image(listingid,index):
-    photo = Images.query.filter(Images.listingid == listingid and Images.index == index).first()
-    return send_from_directory(UPLOAD_FOLDER,photo.name)
-
-# Return next available listing id 
-@app.route('/getnextid/', methods = ['GET'])
-def get_next_id():
-    nextid = db.session.query(func.max(Listing.listingid)).scalar() + 1
-    return f'{nextid}'
-
-# Get all listings
-@app.route('/listings', methods = ['GET'])
-def get_listings():
-    all_listings = Listing.query.all()
-    results = listings_schema.dump(all_listings)
+# Get all users
+@app.route('/users', methods = ['GET'])
+def get_users():
+    all_users = User.query.all()
+    print(all_users)
+    results = users_schema.dump(all_users)
     return jsonify(results.data)
 
-# Get listing by id
-@app.route('/listingbyid/<listingid>', methods = ['GET'])
-def get_listingbyid(listingid):
-    listing = Listing.query.get(listingid)
-    return listing_schema.jsonify(listing)
 
-# Get listings by zipcode
-@app.route('/listingsbyzip/<zipcode>', methods = ['GET'])
-def get_listingsbyzip(zipcode):
-    listings = Listing.query.filter(Listing.zipcode == zipcode)
-    results = listings_schema.dump(listings)
+# Get users by email
+def email_in_db(email):
+    emails = User.query.filter(User.emailaddress == email)
+    emailr = users_schema.dump(emails)
+    print(str(emailr.data))
+    return not (str(emailr.data) == '[]')
+
+
+# Get surveys by user id
+@app.route('/surveysbyuserid/<userid>', methods = ['GET'])
+def get_surveysbyid(userid):
+    survey = Survey.query.filter(Survey.userid == userid)
+    results = surveys_schema.dump(surveys)
+    return survey_schema.jsonify(survey)
+
+# Get questions by surveyid
+@app.route('/questionsbyid/<surveyid>', methods = ['GET'])
+def get_questiondsbyid(surveyid):
+    questions = Question.query.filter(Question.surveyid == surveyid)
+    results = listings_schema.dump(questions)
     return jsonify(results.data)
 
-# Increment/Update listing views
-@app.route('/incrementview/<listingid>', methods = ['PUT'])
-def incrementview(listingid):
-    listing = Listing.query.get(listingid)
-    listing.views += 1
-    db.session.commit()
-    return listing_schema.jsonify(listing)
-
-# Get listings by tag
-@app.route('/listingsbytag/<tag>', methods = ['GET'])
-def get_listingsbytag(tag):
-    listings = Listing.query.filter(Listing.tag == tag)
-    results = listings_schema.dump(listings)
+# Get answers by questionid
+@app.route('/answersbyid/<questionid>', methods = ['GET'])
+def get_answerssbyid(questionid):
+    answers = Answer.query.filter(Answer.questionid == questionid)
+    results = listings_schema.dump(answers)
     return jsonify(results.data)
+
+
+
 
 # Delete listing
 @app.route('/deletelisting/<listingid>', methods = ['GET'])

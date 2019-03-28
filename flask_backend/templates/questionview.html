@@ -1,0 +1,64 @@
+<!DOCTYPE HTML>
+<!--
+	Theory by TEMPLATED
+	templated.co @templatedco
+	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+	
+-->
+<html>
+	<head>
+		<title>Survey Station</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="{{ url_for('static',filename='assets/css/main.css')}}" />
+		<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+	</head>
+	<body>
+
+		<!-- Header -->
+			<header id="header">
+				<div class="inner">
+					<a href="index.html" class="logo">{{data[1].surveyname}}</a>
+					<nav id="nav">
+						<a href="surveybuild.html">Survey Builder</a>
+						<a href="surveyanswer.html">Answer a Survey</a>
+						{% if data %}
+
+						<a href="#"> {{data[0].email}}</a>
+						{% endif %}
+					</nav>
+					<a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+				</div>
+			</header>
+
+		<section id="banner">
+			<p>
+			<br/>
+			</p>
+			</section>
+		<!-- One -->
+			<section id="one" class="wrapper">
+				<div class="inner">
+					<div class="flex flex-3">
+						{% if data %}
+						{% for item in data[2]%}
+						<article>
+							<header>
+								<h3>{{item.question}}<br /></h3>
+								<a href="/qedit/{{item.questionid}}" class="button special">&nbsp; &nbsp; Edit  &nbsp; &nbsp;</a>
+							</footer>
+						</article>
+						{% endfor %}
+						{% endif %}
+					</div>
+				</div>
+			</section>
+		
+		<!-- Scripts -->
+			<script src="{{ url_for('static',filename='assets/js/jquery.min.js')}}"></script>
+			<script src="{{ url_for('static',filename='assets/js/skel.min.js')}}"></script>
+			<script src="{{ url_for('static',filename='assets/js/util.js')}}"></script>
+			<script src="{{ url_for('static',filename='assets/js/main.js')}}"></script>
+
+	</body>
+</html>

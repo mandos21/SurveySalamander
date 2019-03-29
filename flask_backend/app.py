@@ -44,6 +44,7 @@ class Question(db.Model):
     userid = db.Column('user_id', db.Integer)
     surveyid = db.Column('survey_id',db.Integer)
     questionnum = db.Column('question_num',db.Integer)
+    questiontype = db.Column('question_type',db.String(1))
 
 
     def __init__(self, question, userid, surveyid):
@@ -52,7 +53,7 @@ class Question(db.Model):
         self.surveyid = surveyid
         self.questionnum = questionnum
 
-
+# Object definition of Survey Table
 class Survey(db.Model):
     __tablename__ = 'survey'
     surveyid = db.Column('survey_id', db.Integer, primary_key=True)
@@ -62,12 +63,12 @@ class Survey(db.Model):
 
 
 
-    def __init__(self, userid, surveyname):
+    def __init__(self, userid, surveyname, description):
         self.userid = userid
         self.surveyname = surveyname
         self.description = description
 
-
+# Object definition of User table
 class User(db.Model):
     __tablename__ = 'users'
     userid = db.Column('user_id', db.Integer, primary_key=True)
@@ -78,7 +79,7 @@ class User(db.Model):
         self.password = password
         self.emailaddress = emailaddress
 
-
+# Object definition of Answer table
 class Answer(db.Model):
     __tablename__ = 'answers'
     answerid = db.Column('ansewr_id', db.Integer, primary_key=True)
@@ -110,7 +111,7 @@ class AnswerSchema(ma.Schema):
         fields = ('answerid','userid','questionid','answer')
 
 
-# Init Schema
+# Init Schemas
 question_schema = QuestionSchema(strict = True)
 questions_schema = QuestionSchema(many = True, strict = True)
 
@@ -134,8 +135,7 @@ def login():
     if(email_in_db(email)):
         user = User.query.filter(User.emailaddress == email).first()
         surveys = Survey.query.filter(Survey.userid == user.userid)
-        print("***********************ASS************")
-        print(surveys)
+        
         if(pwd_context.verify(passw, user.password)):
             data = [{'userid':user.userid,'email':user.emailaddress},surveys]
             return render_template('index.html', data = data )
@@ -143,6 +143,36 @@ def login():
             return redirect('https://www.degenaro.tk/Survey/login/badlogin.html')
     else:
         return redirect('https://www.degenaro.tk/Survey/signup/index.html')
+
+
+# Submit Question
+@app.route('qcreate',methods=['POST'])
+def qcreate():
+    question = request.form['question']
+    questiontype = request.form['questiontype']
+    questionnum = request.form['questionnum']
+    surveyid = request.form['surveyid']
+    userid = request.form['userid']
+    new_question = Question(question,userid,surveyid,questionnum,questiontype)
+    db.session.add(new_question)
+    db.session.commit()
+
+    data = [userid,surveyid]
+    return render_template('qcreate',data = data)
+
+# Create Survey
+@app.route('screate',methods=['POST'])
+def screate():
+    surveyname = request.form['surveyname']
+    description = request.form['description']
+    userid = request.form['userid']
+    new_survey = Survey(userid,surveyname,description)
+    db.session.add(new_survey)
+    db.session.commit()
+
+    data = [userid, new_survey.surveyid]
+    return render_template('qcreate.html', data = data)
+
 
 # Add Question 
 @app.route('/addquestion', methods=['POST'])
@@ -162,8 +192,9 @@ def add_survey():
     new_survey = Question(urlinfo)
     db.session.add(new_survey)
     db.session.commit()
-    return survey_schema.jsonify(new_survey)
+    return survey_schema.jsonify(new_survey)v
 
+# Add User
 @app.route('/adduser', methods=['POST'])
 def add_user():
     emailaddress = request.form['email']
@@ -181,6 +212,7 @@ def add_user():
     data = [{'userid':new_user.userid,'email':emailaddress},surveys]
     return render_template('/index.html', data = data)
 
+# Add Answer (Deprecated)
 @app.route('/addanswer', methods=['POST'])
 def add_answer():
     userid = request.json['userid']
@@ -191,6 +223,7 @@ def add_answer():
     db.session.commit()
     return answer_schema.jsonify(new_answer)
 
+# Redirect to question view from survey view
 @app.route('/qredirect/<surveyid>', methods=['GET'])
 def qredirect(surveyid):
     survey = Survey.query.filter(Survey.surveyid == surveyid).first()
@@ -199,6 +232,7 @@ def qredirect(surveyid):
     data = [user,survey,questions]
     return render_template('questionview.html', data = data)
 
+# Renders template for question editing page
 @app.route('/qedit/<questionid>', methods=['GET'])
 def qedit(questionid):
     question = Question.query.filter(Question.questionid == questionid).first()    
@@ -206,6 +240,21 @@ def qedit(questionid):
     data = [user,question]
     return render_template('qedit.html',data = data)
 
+# Commit changes to database, redirect over to question view page
+@app.route('/qeditconfirm', methods =['POST'])
+def qeditconfirm():
+    questiontext = request.form['question']
+    questionid = request.form['questionid']
+    question = Question.query.filter(Question.questionid == questionid).first()
+    question.question = questiontext
+    db.session.add(question)
+    db.session.commit()
+
+    user = User.query.filter(User.userid == question.userid).first()
+    survey = Survey.query.filter(Survey.surveyid = question.surveyid).first()
+    questionm = Question.query.filter(Question.surveyid = survey.surveyid)
+    data = [user,survey,question]
+    return render_template('questionview.html',data = data)
 
 # Get all users
 @app.route('/users', methods = ['GET'])

@@ -47,11 +47,12 @@ class Question(db.Model):
     questiontype = db.Column('question_type',db.String(1))
 
 
-    def __init__(self, question, userid, surveyid):
+    def __init__(self, question, userid, surveyid, questionnum, questiontype):
         self.question = question
         self.userid = userid
         self.surveyid = surveyid
         self.questionnum = questionnum
+        self.questiontype = questiontype
 
 # Object definition of Survey Table
 class Survey(db.Model):
@@ -146,22 +147,26 @@ def login():
 
 
 # Submit Question
-@app.route('qcreate',methods=['POST'])
+@app.route('/qcreate',methods=['POST'])
 def qcreate():
     question = request.form['question']
     questiontype = request.form['questiontype']
     questionnum = request.form['questionnum']
     surveyid = request.form['surveyid']
     userid = request.form['userid']
+
+    survey = Survey.query.filter(Survey.surveyid == surveyid).first()
+    user = User.query.filter(User.userid == userid).first()
+
     new_question = Question(question,userid,surveyid,questionnum,questiontype)
     db.session.add(new_question)
     db.session.commit()
 
-    data = [userid,surveyid]
-    return render_template('qcreate',data = data)
+    data = [user,survey]
+    return render_template('qcreate.html',data = data)
 
 # Create Survey
-@app.route('screate',methods=['POST'])
+@app.route('/screate',methods=['POST'])
 def screate():
     surveyname = request.form['surveyname']
     description = request.form['description']
@@ -170,7 +175,8 @@ def screate():
     db.session.add(new_survey)
     db.session.commit()
 
-    data = [userid, new_survey.surveyid]
+    user = User.query.filter(User.userid == userid).first()
+    data = [user, new_survey]
     return render_template('qcreate.html', data = data)
 
 
@@ -192,7 +198,7 @@ def add_survey():
     new_survey = Question(urlinfo)
     db.session.add(new_survey)
     db.session.commit()
-    return survey_schema.jsonify(new_survey)v
+    return survey_schema.jsonify(new_survey)
 
 # Add User
 @app.route('/adduser', methods=['POST'])
@@ -240,6 +246,13 @@ def qedit(questionid):
     data = [user,question]
     return render_template('qedit.html',data = data)
 
+# Renders template for Survey editing page
+@app.route('/sedit/<userid>', methods=['GET'])
+def sedit(userid):
+    user = User.query.filter(User.userid == userid).first()
+    data = [user]
+    return render_template('sedit.html',data = data)
+
 # Commit changes to database, redirect over to question view page
 @app.route('/qeditconfirm', methods =['POST'])
 def qeditconfirm():
@@ -251,9 +264,9 @@ def qeditconfirm():
     db.session.commit()
 
     user = User.query.filter(User.userid == question.userid).first()
-    survey = Survey.query.filter(Survey.surveyid = question.surveyid).first()
-    questionm = Question.query.filter(Question.surveyid = survey.surveyid)
-    data = [user,survey,question]
+    survey = Survey.query.filter(Survey.surveyid == question.surveyid).first()
+    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+    data = [user,survey,questions]
     return render_template('questionview.html',data = data)
 
 # Get all users

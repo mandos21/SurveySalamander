@@ -42,7 +42,7 @@
 					<div class="flex flex-3">
 						<h2>Edit </h2>
 						{% if data %}
-						<form> <!--action=#"https://www.degenaro.tk:5000/qreditconfirm" method="post">-->
+						<form action="https://www.degenaro.tk:5000/qeditconfirm" method="post">
 						<input id="question" type="Text" name="question" value="" placeholder="{{data[1].question}}" >
 						<input type="hidden" value={{data[1].questionid}} name="questionid">
 						<input type="submit" value="submit">	

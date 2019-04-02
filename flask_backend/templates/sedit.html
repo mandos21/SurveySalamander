@@ -18,7 +18,7 @@
 		<!-- Header -->
 			<header id="header">
 				<div class="inner">
-					<a href="index.html" class="logo">Your Surveys</a>
+					<a href="index.html" class="logo">Survey Creation</a>
 					<nav id="nav">
 						<a href="surveybuild.html">Survey Builder</a>
 						<a href="surveyanswer.html">Answer a Survey</a>
@@ -31,38 +31,23 @@
 				</div>
 			</header>
 
-		<!-- Banner -->
 		<section id="banner">
 			<p>
 			<br/>
 			</p>
-		</section>
+			</section>
 		<!-- One -->
 			<section id="one" class="wrapper">
 				<div class="inner">
 					<div class="flex flex-3">
-						<article>
-							<header>
-								<h3>Create a Survey<br /></h3>
-							</header>
-							<p>After completion this will be added to your list of surveys below.</p>
-							<footer>
-								<a href="/sedit/{{data[0].userid}}" class="button special">&nbsp; &nbsp;  Create  &nbsp; &nbsp;</a>
-							</footer>
-						</article>
-						<article><h2>View and Edit Existing Surveys</h2></article>
+						<h2>Edit </h2>
 						{% if data %}
-						{% for item in data[1]%}
-						<article>
-							<header>
-								<h3>{{item.surveyname}}<br /></h3>
-							</header>
-							<p>{{item.description}}</p>
-							<footer>
-								<a href="/qredirect/{{item.surveyid}}" class="button special">&nbsp; &nbsp; View  &nbsp; &nbsp;</a>
-							</footer>
-						</article>
-						{% endfor %}
+						<form action="https://www.degenaro.tk:5000/screate" method="post">
+						<input id="surveyname" type="Text" name="surveyname" value="" placeholder="Survey Name" >
+						<input id="description" type="Text" name="description" value="" placeholder="Survey description">
+						<input type="hidden" value={{data[0].userid}} name="userid">
+						<input type="submit" value="submit">	
+
 						{% endif %}
 					</div>
 				</div>

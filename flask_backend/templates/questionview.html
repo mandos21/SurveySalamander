@@ -18,16 +18,9 @@
 		<!-- Header -->
 			<header id="header">
 				<div class="inner">
-					<a href="index.html" class="logo">{{data[1].surveyname}}</a>
-					<nav id="nav">
-						<a href="surveybuild.html">Survey Builder</a>
-						<a href="surveyanswer.html">Answer a Survey</a>
-						{% if data %}
-
-						<a href="#"> {{data[0].email}}</a>
-						{% endif %}
-					</nav>
-					<a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+					<a href="#" class="logo">{{data[1].surveyname}}</a>
+					<a href="../home/{{data[0].userid}}">Home</a>
+					<a href="../user/{{data[0].userid}}">{{data[0].emailaddress}}</a>
 				</div>
 			</header>
 

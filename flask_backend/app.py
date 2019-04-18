@@ -1,3 +1,5 @@
+import random
+import string
 import configparser
 import json
 import os
@@ -61,13 +63,15 @@ class Survey(db.Model):
     userid = db.Column('user_id', db.Integer)
     surveyname = db.Column('survey_name', db.String(100))
     description = db.Column('description', db.String(300))
+    public = db.Column('public', db.Integer)
+    privcode = db.Column('privcode', db.String(10))
 
 
-
-    def __init__(self, userid, surveyname, description):
+    def __init__(self, userid, surveyname, description, public):
         self.userid = userid
         self.surveyname = surveyname
         self.description = description
+        self.public = public
 
 # Object definition of User table
 class User(db.Model):
@@ -139,7 +143,8 @@ def login():
         
         if(pwd_context.verify(passw, user.password)):
             data = [{'userid':user.userid,'email':user.emailaddress},surveys]
-            return render_template('index.html', data = data )
+            #return render_template('index.html', data = data )
+            return redirect('https://degenaro.tk:5000/user/' + str(user.userid))
         else:
             return redirect('https://www.degenaro.tk/Survey/login/badlogin.html')
     else:
@@ -171,7 +176,15 @@ def screate():
     surveyname = request.form['surveyname']
     description = request.form['description']
     userid = request.form['userid']
-    new_survey = Survey(userid,surveyname,description)
+    public = request.form['public']
+
+
+    new_survey = Survey(userid,surveyname,description, public)
+
+    if public == "0":
+        privcode = genprivcode(10)
+        new_survey.privcode = privcode
+
     db.session.add(new_survey)
     db.session.commit()
 
@@ -243,7 +256,8 @@ def qredirect(surveyid):
 def qedit(questionid):
     question = Question.query.filter(Question.questionid == questionid).first()    
     user = User.query.filter(User.userid == question.userid).first()
-    data = [user,question]
+    survey = Survey.query.filter(Survey.surveyid == question.surveyid).first()
+    data = [user,survey,question]
     return render_template('qedit.html',data = data)
 
 # Renders template for Survey editing page
@@ -252,6 +266,15 @@ def sedit(userid):
     user = User.query.filter(User.userid == userid).first()
     data = [user]
     return render_template('sedit.html',data = data)
+
+# Re-render the sedit template for previously created templates
+@app.route('/salter/<surveyid>', methods=['GET'])
+def salter(surveyid):
+    survey = Survey.query.filter(Survey.surveyid == surveyid).first()
+    user = User.query.filter(User.userid == survey.userid).first() 
+    questions = Question.query.filter(Question.surveyid == surveyid)
+    data = [user,survey,questions]
+    return render_template('salter.html', data = data)
 
 # Commit changes to database, redirect over to question view page
 @app.route('/qeditconfirm', methods =['POST'])
@@ -268,6 +291,70 @@ def qeditconfirm():
     questions = Question.query.filter(Question.surveyid == survey.surveyid)
     data = [user,survey,questions]
     return render_template('questionview.html',data = data)
+
+# Commit changes to database, redirect over to Survey view page
+@app.route('/salterconfirm', methods =['POST'])
+def salterconfirm():
+    surveyname = request.form['surveyname']
+    description = request.form['description']
+    userid = request.form['userid']
+    public = request.form['public']
+    surveyid = request.form['surveyid']
+    
+    survey = Survey.query.filter(Survey.surveyid == surveyid).first()
+
+    if survey.privcode == None and public == "0":
+        privcode = genprivcode(10)
+        survey.privcode = privcode
+
+
+    survey.surveyname = surveyname
+    survey.description = description
+    survey.public = public
+
+    db.session.add(survey)
+    db.session.commit()
+
+    user = User.query.filter(User.userid == userid).first()
+    survey = Survey.query.filter(Survey.surveyid == surveyid).first()
+    questions = Question.query.filter(Question.surveyid == surveyid)
+    data = [user,survey,questions]
+    return render_template('questionview.html',data = data)
+
+# Redirect user to his Survey page based on userid
+@app.route('/user/<userid>', methods = ['GET'])
+def user_redirect(userid):
+    user = User.query.filter(User.userid == userid).first()
+    surveys = Survey.query.filter(Survey.userid == userid)
+    data = [user,surveys]
+    return render_template('index.html', data = data)
+
+# Redirec to home page
+@app.route('/home/<userid>', methods = ['GET'])
+def home(userid):
+    user = User.query.filter(User.userid == userid).first()
+    data = [user]
+    return render_template('home.html', data = data)
+
+# Regenerate Sharing Key
+@app.route('/privregen/<surveyid>', methods = ['GET'])
+def privregen(surveyid):
+    survey = Survey.query.get(surveyid)
+    privcode = genprivcode(10)
+
+    survey.privcode = privcode
+    db.session.add(survey)
+    db.session.commit()
+
+    
+    user = User.query.filter(User.userid == survey.userid).first()
+    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+    data = [user,survey,questions]
+    return render_template('index.html', data = data)
+
+
+
+
 
 # Get all users
 @app.route('/users', methods = ['GET'])
@@ -322,6 +409,16 @@ def deletelisting(listingid):
 @app.route("/hello")
 def hello_endpoint():
     return "Hello world!"
+
+
+# For debugging purposes
+def debug(item):
+    print("*******************************************************************")
+    print(item)
+    print("*******************************************************************")
+
+def genprivcode(length):
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=length))
 
 if __name__ == "__main__":
     # app.run()

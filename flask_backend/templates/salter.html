@@ -36,16 +36,26 @@
 					<div class="flex flex-3">
 						<h2>Edit </h2>
 						{% if data %}
-						<form action="https://www.degenaro.tk:5000/screate" method="post">
-						<input id="surveyname" type="Text" name="surveyname" value="" placeholder="Survey Name" >
-						<input id="description" type="Text" name="description" value="" placeholder="Survey description">
+						<form action="https://www.degenaro.tk:5000/salterconfirm" method="post">
+							<input id="surveyname" type="Text" name="surveyname" value="" placeholder="{{data[1].surveyname}}" >
+							<input id="description" type="Text" name="description" value="" placeholder="{{data[1].description}}">
 						<input type="radio" id="public" name="public" value="1">
 						<label for="public"> Public </label>
 						<input type="radio" id="private" name="public" value="0">
 						<label for="private"> Private </label>
 
 						<input type="hidden" value={{data[0].userid}} name="userid">
+						<input type="hidden" value={{data[1].surveyid}} name="surveyid">
 						<input type="submit" value="submit">	
+
+						{% endif %}
+					</div>
+					<div class="flex flex-3">
+						{% if data %}
+						<form action="https://www.degenaro.tk:5000/sdelete" method="post">
+						<input type="hidden" value={{data[0].userid}} name="userid">
+						<input type="hidden" value={{data[1].surveyid}} name="surveyid">
+						<input type="submit" value="Delete">	
 
 						{% endif %}
 					</div>

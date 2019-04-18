@@ -18,16 +18,9 @@
 		<!-- Header -->
 			<header id="header">
 				<div class="inner">
-					<a href="index.html" class="logo">{{data[1].surveyname}}</a>
-					<nav id="nav">
-						<a href="surveybuild.html">Survey Builder</a>
-						<a href="surveyanswer.html">Answer a Survey</a>
-						{% if data %}
-
-						<a href="#"> {{data[0].email}}</a>
-						{% endif %}
-					</nav>
-					<a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+					<a href="../qredirect/{{data[1].surveyid}}" class="logo">{{data[1].surveyname}}</a>
+					<a href="../home/{{data[0].userid}}">Home</a>
+					<a href="../user/{{data[0].userid}}">{{data[0].emailaddress}}</a>
 				</div>
 			</header>
 
@@ -43,8 +36,8 @@
 						<h2>Edit </h2>
 						{% if data %}
 						<form action="https://www.degenaro.tk:5000/qeditconfirm" method="post">
-						<input id="question" type="Text" name="question" value="" placeholder="{{data[1].question}}" >
-						<input type="hidden" value={{data[1].questionid}} name="questionid">
+						<input id="question" type="Text" name="question" value="" placeholder="{{data[2].question}}" >
+						<input type="hidden" value={{data[2].questionid}} name="questionid">
 						<input type="submit" value="submit">	
 
 						{% endif %}

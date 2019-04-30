@@ -385,6 +385,14 @@ def sdeleteconfirm():
 #
 
 
+# Get users by email
+def email_in_db(email):
+    emails = User.query.filter(User.emailaddress == email)
+    emailr = users_schema.dump(emails)
+    print(str(emailr.data))
+    return not (str(emailr.data) == '[]')
+
+
 # Redirect user to his Survey page based on userid
 @app.route('/user/<userid>', methods = ['GET'])
 def user_redirect(userid):

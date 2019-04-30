@@ -33,18 +33,22 @@
 		<!-- One -->
 			<section id="one" class="wrapper">
 				<div class="inner">
-					<div class="flex flex-3">
 
-						
 						<article>
 							<header>
 								<h3>Answer a Private Survey<br /></h3>
 							</header>
 							<p>Enter your survey code here</p>
 							<footer>
-								<a href="/sedit/{{data[0].userid}}" class="button special">&nbsp; &nbsp;  Create  &nbsp; &nbsp;</a>
+							<form action="https://degenaro.tk:5000/privredirect" method="post">
+								<input id="privcode" name="privcode" type="text" value="" placeholder="ABCD1234">
+								<input type="submit" value="Answer">
 							</footer>
 						</article>
+						<br><hr>
+					<div class="flex flex-3">
+
+						
 						<article><h2> Public Surveys </h2></article>
 
 
@@ -57,9 +61,8 @@
 							</header>
 							<p>{{item.description}}</p>
 							<footer>
-								<a href="/qredirect/{{item.surveyid}}" class="button special">&nbsp; &nbsp; View  &nbsp; &nbsp;</a>
+								<a href="/sredirect/{{item.surveyid}}" class="button special">&nbsp; &nbsp; Answer  &nbsp; &nbsp;</a>
 							
-								<a href="/salter/{{item.surveyid}}" class="button special">&nbsp; &nbsp; Edit  &nbsp; &nbsp;</a>
 							</footer>
 						</article>
 						{% endfor %}

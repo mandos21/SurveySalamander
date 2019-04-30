@@ -32,6 +32,8 @@
 		<!-- One -->
 			<section id="one" class="wrapper">
 				<div class="inner">
+					<a href="../qaddredirect/{{data[1].surveyid}}"> Add New Question </a>
+					<br>
 					<div class="flex flex-3">
 						{% if data %}
 						{% for item in data[2]%}
@@ -39,6 +41,7 @@
 							<header>
 								<h3>{{item.question}}<br /></h3>
 								<a href="/qedit/{{item.questionid}}" class="button special">&nbsp; &nbsp; Edit  &nbsp; &nbsp;</a>
+								<a href="/qdelete/{{item.questionid}}" class="button special">&nbsp; &nbsp; Delete  &nbsp; &nbsp;</a>
 							</footer>
 						</article>
 						{% endfor %}

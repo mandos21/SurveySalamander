@@ -46,9 +46,9 @@
 						<form action="https://www.degenaro.tk:5000/qcreate" method="post">
 						<input id="question" type="Text" name="question" value="" placeholder="Question" >
 						<input id="questiontype" type="Text" name="questiontype" value="" placeholder="Question Type (WIP)" maxlength="10">
-						<input id="questionnun" type="Text" name="questionnum" value="" placeholder="Question Number">
-						<input type="hidden" value={{data[1].surveyid}} name="surveyid">
-						<input type="hidden" value={{data[0].userid}} name="userid">
+						<input id="questionnum" type="Text" name="questionnum" value="" placeholder="Question Number">
+						<input type="hidden" value="{{data[1].surveyid}}" name="surveyid">
+						<input type="hidden" value="{{data[0].userid}}" name="userid">
 						<input type="submit" value="submit">	
 
 						{% endif %}

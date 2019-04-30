@@ -18,16 +18,9 @@
 		<!-- Header -->
 			<header id="header">
 				<div class="inner">
-					<a href="index.html" class="logo">{{data[1].surveyname}}</a>
-					<nav id="nav">
-						<a href="surveybuild.html">Survey Builder</a>
-						<a href="surveyanswer.html">Answer a Survey</a>
-						{% if data %}
-
-						<a href="#"> {{data[0].email}}</a>
-						{% endif %}
-					</nav>
-					<a href="#navPanel" class="navPanelToggle"><span class="fa fa-bars"></span></a>
+					<a href="../qredirect/{{data[1].surveyid}}" class="logo">{{data[1].surveyname}}</a>
+					<a href="../home/{{data[0].userid}}">Home</a>
+					<a href="../user/{{data[0].userid}}">{{data[0].emailaddress}}</a>
 				</div>
 			</header>
 
@@ -39,17 +32,13 @@
 		<!-- One -->
 			<section id="one" class="wrapper">
 				<div class="inner">
-					<a href="../qredirect/{{data[1].surveyid}}">Done</a>
 					<div class="flex flex-3">
-						<h2>Edit </h2>
+						<h2>Are You Sure? </h2>
 						{% if data %}
-						<form action="https://www.degenaro.tk:5000/qcreate" method="post">
-						<input id="question" type="Text" name="question" value="" placeholder="Question" >
-						<input id="questiontype" type="Text" name="questiontype" value="" placeholder="Question Type (WIP)" maxlength="10">
-						<input id="questionnun" type="Text" name="questionnum" value="" placeholder="Question Number">
-						<input type="hidden" value={{data[1].surveyid}} name="surveyid">
-						<input type="hidden" value={{data[0].userid}} name="userid">
-						<input type="submit" value="submit">	
+						<form action="https://www.degenaro.tk:5000/sdeleteconfirm" method="post">
+						<input type="hidden" value="{{data[0].userid}}" name="userid">
+						<input type="hidden" value="{{data[1].surveyid}}" name="surveyid">
+						<input type="submit" value="Delete">	
 
 						{% endif %}
 					</div>

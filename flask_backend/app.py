@@ -144,7 +144,7 @@ def login():
         if(pwd_context.verify(passw, user.password)):
             data = [{'userid':user.userid,'email':user.emailaddress},surveys]
             #return render_template('index.html', data = data )
-            return redirect('https://degenaro.tk:5000/user/' + str(user.userid))
+            return redirect('https://degenaro.tk:5000/home/' + str(user.userid))
         else:
             return redirect('https://www.degenaro.tk/Survey/login/badlogin.html')
     else:
@@ -348,11 +348,84 @@ def privregen(surveyid):
 
     
     user = User.query.filter(User.userid == survey.userid).first()
-    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+    surveys = Survey.query.filter(Survey.userid == survey.userid)
+    data = [user,surveys]
+    return render_template('index.html', data = data)
+
+# Redirect to add a question to survey page
+@app.route('/qaddredirect/<surveyid>', methods = ['GET'])
+def qaddredirect(surveyid):
+    survey = Survey.query.get(surveyid)
+    user = User.query.filter(User.userid == survey.userid).first()
+
+    data = [user,survey]
+    debug(len(data))
+    return render_template('qadd.html', data = data)
+
+# Redirect to Answer Home page
+@app.route('/answerhome/<userid>', methods = ['GET'])
+def answerhome(userid):
+    user = User.query.get(userid)
+    surveys = Survey.query.filter(Survey.public == 1)
+    data = [user,surveys]
+    return render_template('answerhome.html', data = data)
+
+# Render Survey Deletetion Confirmation Page
+@app.route('/sdelete/<surveyid>', methods = ['GET'])
+def sdelete(surveyid):
+    survey = Survey.query.get(surveyid)
+    user = User.query.filter(User.userid == survey.userid)
+    questions = Question.query.filter(Question.surveyid == surveyid)
+
     data = [user,survey,questions]
+    
+    return render_template('sdelete.html', data = data)
+
+# Render Question Deletetion Confirmation Page
+@app.route('/qdelete/<questionid>', methods = ['GET'])
+def qdelete(questionid):
+    question = Question.query.get(questionid)
+    survey = Survey.query.get(question.surveyid) 
+    user = User.query.filter(User.userid == survey.userid)
+
+    data = [user,survey,question]
+    return render_template('qdelete.html', data = data)
+
+
+# Delete a survey via post
+@app.route('/sdeleteconfirm', methods = ['POST'])
+def sdeleteconfirm():
+    userid = request.form['userid']
+    surveyid = request.form['surveyid']
+
+    user = User.query.get(userid)
+    survey = Survey.query.get(surveyid)
+
+    db.session.delete(survey)
+    db.session.commit()
+    debug(userid) 
+    surveys = Survey.query.filter(Survey.userid == userid)
+    data = [user, surveys]
     return render_template('index.html', data = data)
 
 
+# Delete a question via post
+@app.route('/qdeleteconfirm', methods = ['POST'])
+def qdeleteconfirm():
+    userid = request.form['userid']
+    questionid = request.form['questionid']
+    surveyid = request.form['surveyid']
+
+    user = User.query.get(userid)
+    question = Question.query.get(questionid)
+    survey = Survey.query.get(surveyid)
+
+    db.session.delete(question)
+    db.session.commit()
+
+    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+    data = [user, survey, questions]
+    return render_template('questionview.html', data = data)
 
 
 

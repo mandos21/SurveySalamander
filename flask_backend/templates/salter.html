@@ -44,18 +44,9 @@
 						<input type="radio" id="private" name="public" value="0">
 						<label for="private"> Private </label>
 
-						<input type="hidden" value={{data[0].userid}} name="userid">
-						<input type="hidden" value={{data[1].surveyid}} name="surveyid">
+						<input type="hidden" value={{data[0]}} name="user">
+						<input type="hidden" value={{data[1]}} name="survey">
 						<input type="submit" value="submit">	
-
-						{% endif %}
-					</div>
-					<div class="flex flex-3">
-						{% if data %}
-						<form action="https://www.degenaro.tk:5000/sdelete" method="post">
-						<input type="hidden" value={{data[0].userid}} name="userid">
-						<input type="hidden" value={{data[1].surveyid}} name="surveyid">
-						<input type="submit" value="Delete">	
 
 						{% endif %}
 					</div>

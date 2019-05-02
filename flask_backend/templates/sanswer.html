@@ -18,7 +18,8 @@
 		<!-- Header -->
 			<header id="header">
 				<div class="inner">
-					<a href="#" class="logo">Answer Surveys</a>
+					<a href="#" class="logo">{{data[1].surveyname}}</a>
+					<a href="#">{{data[1].description}}</a>
 					<a href="../home/{{data[0].userid}}">Home</a>
 					<a href="#"> {{data[0].emailaddress}}</a>
 				</div>
@@ -33,40 +34,25 @@
 		<!-- One -->
 			<section id="one" class="wrapper">
 				<div class="inner">
-
-						<article>
-							<header>
-								<h3>Answer a Private Survey<br /></h3>
-							</header>
-							<p>Enter your survey code here</p>
-							<footer>
-							<form action="https://degenaro.tk:5000/privredirect" method="post">
-								<input id="privcode" name="privcode" type="text" value="" placeholder="ABCD1234">
-								<input type="hidden" value={{data[0].userid}} name="userid">
-								<input type="submit" value="Answer">
-							</footer>
-						</article>
-						<br><hr>
 					<div class="flex flex-3">
-
-						
-						<article><h2> Public Surveys </h2></article>
-
-
-
+					<form action="https://degenaro.tk:5000/asubmit" method = "post">
 						{% if data %}
-						{% for item in data[1]%}
+						{% set count = [0] %}
+						{% for item in data[2]%}
 						<article>
 							<header>
-								<h3>{{item.surveyname}}<br /></h3>
+								<h3>{{item.question}}<br /></h3>
 							</header>
-							<p>{{item.description}}</p>
 							<footer>
-								<a href="/sredirect/{{item.surveyid}}/{{data[0].userid}}" class="button special">&nbsp; &nbsp; Answer  &nbsp; &nbsp;</a>
-							
+								<textarea id={{count[0]}} name={{count[0]}} rows = "5" cols = "50"></textarea>	
+								{% if count.append(count.pop() + 1) %}{% endif %}
 							</footer>
 						</article>
 						{% endfor %}
+						<input type="hidden" value="{{data[1].surveyid}}" name="surveyid">
+						<input type="hidden" value="{{count[0]}}" name="qnum">
+						<input type="hidden" value="{{data[0].userid}}" name="userid">
+						<input type="submit" value="submit">
 						{% endif %}
 					</div>
 				</div>

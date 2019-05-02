@@ -65,13 +65,15 @@ class Survey(db.Model):
     description = db.Column('description', db.String(300))
     public = db.Column('public', db.Integer)
     privcode = db.Column('privcode', db.String(10))
+    questions = db.Column('questions', db.Integer)
 
 
-    def __init__(self, userid, surveyname, description, public):
+    def __init__(self, userid, surveyname, description, public,questions):
         self.userid = userid
         self.surveyname = surveyname
         self.description = description
         self.public = public
+        self.questions = questions
 
 # Object definition of User table
 class User(db.Model):
@@ -89,11 +91,10 @@ class Answer(db.Model):
     __tablename__ = 'answers'
     answerid = db.Column('ansewr_id', db.Integer, primary_key=True)
     userid = db.Column('user_id', db.Integer)
-    questionid = db.Column('questionid', db.Integer)
+    questionid = db.Column('question_id', db.Integer)
     answer = db.Column('answer',db.String(2000))
 
-    def __init__(self, userid, questionid,answer):
-        self.userid = userid
+    def __init__(self, questionid,answer):
         self.questionid = questionid
         self.answer = answer
 
@@ -101,11 +102,10 @@ class Answer(db.Model):
 # Listing shcemas (what fields to serve when pulling from database)
 class QuestionSchema(ma.Schema):
     class Meta:
-        fields = ('questionid','question','userid','surveyid')
-
+        fields = ('questionid','question','userid','surveyid','questionnum','questiontype')
 class SurveySchema(ma.Schema):
     class Meta:
-        fields = ('surveyid','userid','survey_name','description')
+        fields = ('surveyid','userid','survey_name','description','questions')
 
 class UserSchema(ma.Schema):
     class Meta:
@@ -166,7 +166,7 @@ def add_user():
 
     surveys = Survey.query.filter(Survey.userid == new_user.userid)
     data = [{'userid':new_user.userid,'email':emailaddress},surveys]
-    return render_template('/index.html', data = data)
+    return render_template('/home.html', data = data)
 
 
 
@@ -186,6 +186,11 @@ def qcreate():
 
     survey = Survey.query.filter(Survey.surveyid == surveyid).first()
     user = User.query.filter(User.userid == userid).first()
+
+    survey.questions = survey.questions + 1
+    db.session.add(survey)
+    db.session.commit()
+
 
     new_question = Question(question,userid,surveyid,questionnum,questiontype)
     db.session.add(new_question)
@@ -291,7 +296,7 @@ def screate():
     public = request.form['public']
 
 
-    new_survey = Survey(userid,surveyname,description, public)
+    new_survey = Survey(userid,surveyname,description, public,0)
 
     if public == "0":
         privcode = genprivcode(10)
@@ -381,6 +386,85 @@ def sdeleteconfirm():
 
 
 #
+#   ANSWERS
+#
+
+# Redirect to answer page based on private code
+@app.route('/privredirect', methods = ['POST'])
+def privredirect():
+    privcode = request.form['privcode']
+    userid = request.form['userid']
+    user = User.query.get(userid)
+    survey = Survey.query.filter(Survey.privcode == privcode).first()
+    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+
+
+    data = [user, survey, questions,0]
+    return render_template('sanswer.html', data = data)
+
+
+# Redirect to answer page from public survey
+@app.route('/sredirect/<surveyid>/<userid>', methods = ['GET'])
+def sredirect(surveyid,userid):
+    survey = Survey.query.get(surveyid)
+    user = User.query.get(userid)
+    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+
+
+    data = [user, survey, questions,0]
+    return render_template('sanswer.html', data = data)
+
+
+# Redirect to answer page based on private code (public)
+@app.route('/privredirectpub', methods = ['POST'])
+def privredirectpub():
+    privcode = request.form['privcode']
+    survey = Survey.query.filter(Survey.privcode == privcode).first()
+    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+
+
+    data = [0,survey, questions,0]
+    return render_template('sanswer.html', data = data)
+
+
+# Redirect to answer page from public survey (public)
+@app.route('/sredirectpub/<surveyid>', methods = ['GET'])
+def sredirectpub(surveyid):
+    survey = Survey.query.get(surveyid)
+    questions = Question.query.filter(Question.surveyid == survey.surveyid)
+
+
+    data = [0,survey, questions,0]
+    return render_template('sanswer.html', data = data)
+
+# Accept submitted answers into the database
+@app.route('/asubmit', methods = ['POST'])
+def asubmit():
+    surveyid = request.form['surveyid']
+    qnum = request.form['qnum']
+    userid = request.form['userid']
+
+    user = User.query.get(userid)
+    questions = Question.query.filter(Question.surveyid == surveyid)
+    questionr = questions_schema.dump(questions)
+
+    debug(qnum)
+    for i,q in zip(range(0,int(qnum)),questionr[0]):
+        answertext = request.form[str(i)]
+        qid = q['questionid']
+        answer = Answer(qid,answertext)
+        db.session.add(answer)
+        db.session.commit()
+    
+    surveys = Survey.query.filter(Survey.public == 1, Survey.questions != 0)
+    data = [user, surveys]
+    if userid != "":
+        return render_template('answerhome.html', data = data)
+    else:
+        data=[surveys]
+        return render_template('publicanswer.html', data = data)
+
+#
 #     OTHER
 #
 
@@ -391,6 +475,13 @@ def email_in_db(email):
     emailr = users_schema.dump(emails)
     print(str(emailr.data))
     return not (str(emailr.data) == '[]')
+
+# Redirect to Answerhome page for public users
+@app.route('/pubanswerredirect', methods = ['GET'])
+def pubanswerredirect():
+    surveys = Survey.query.filter(Survey.public == 1, Survey.questions != 0)
+    data = [surveys]
+    return render_template('publicanswer.html', data = data)
 
 
 # Redirect user to his Survey page based on userid
@@ -428,7 +519,7 @@ def privregen(surveyid):
 @app.route('/answerhome/<userid>', methods = ['GET'])
 def answerhome(userid):
     user = User.query.get(userid)
-    surveys = Survey.query.filter(Survey.public == 1)
+    surveys = Survey.query.filter(Survey.public == 1, Survey.questions != 0)
     data = [user,surveys]
     return render_template('answerhome.html', data = data)
 

@@ -18,9 +18,7 @@
 		<!-- Header -->
 			<header id="header">
 				<div class="inner">
-					<a href="#" class="logo">Answer Surveys</a>
-					<a href="../home/{{data[0].userid}}">Home</a>
-					<a href="#"> {{data[0].emailaddress}}</a>
+					<a href="https://www.degenaro.tk/Survey" class="logo"> Home </a>
 				</div>
 			</header>
 
@@ -40,9 +38,8 @@
 							</header>
 							<p>Enter your survey code here</p>
 							<footer>
-							<form action="https://degenaro.tk:5000/privredirect" method="post">
+							<form action="https://degenaro.tk:5000/privredirectpub" method="post">
 								<input id="privcode" name="privcode" type="text" value="" placeholder="ABCD1234">
-								<input type="hidden" value={{data[0].userid}} name="userid">
 								<input type="submit" value="Answer">
 							</footer>
 						</article>
@@ -55,14 +52,14 @@
 
 
 						{% if data %}
-						{% for item in data[1]%}
+						{% for item in data[0]%}
 						<article>
 							<header>
 								<h3>{{item.surveyname}}<br /></h3>
 							</header>
 							<p>{{item.description}}</p>
 							<footer>
-								<a href="/sredirect/{{item.surveyid}}/{{data[0].userid}}" class="button special">&nbsp; &nbsp; Answer  &nbsp; &nbsp;</a>
+								<a href="/sredirectpub/{{item.surveyid}}" class="button special">&nbsp; &nbsp; Answer  &nbsp; &nbsp;</a>
 							
 							</footer>
 						</article>

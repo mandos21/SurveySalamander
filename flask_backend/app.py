@@ -89,7 +89,7 @@ class User(db.Model):
 # Object definition of Answer table
 class Answer(db.Model):
     __tablename__ = 'answers'
-    answerid = db.Column('ansewr_id', db.Integer, primary_key=True)
+    answerid = db.Column('answer_id', db.Integer, primary_key=True)
     userid = db.Column('user_id', db.Integer)
     questionid = db.Column('question_id', db.Integer)
     answer = db.Column('answer',db.String(2000))
@@ -127,7 +127,7 @@ user_schema = UserSchema(strict = True)
 users_schema = UserSchema(many = True, strict = True)
 
 answer_schema  = AnswerSchema(strict = True)
-answers_scheme = AnswerSchema(many = True, strict = True)
+answers_schema = AnswerSchema(many = True, strict = True)
 
 
 ## APP ENDPOINTS:
@@ -463,6 +463,29 @@ def asubmit():
     else:
         data=[surveys]
         return render_template('publicanswer.html', data = data)
+
+# View Survey Answers
+@app.route('/aview/<surveyid>', methods = ['GET'])
+def aview(surveyid):
+    survey = Survey.query.get(surveyid)
+    user = User.query.filter(User.userid == survey.userid).first()
+    questions = Question.query.filter(Question.surveyid == surveyid)
+    qdata = []
+
+    for q in questions_schema.dump(questions)[0]:
+        qview = [Question.query.get(q['questionid'])]
+        answers = Answer.query.filter(Answer.questionid == q['questionid'])
+        adump = answers_schema.dump(answers)[0]
+        alist = []
+        for a in adump:
+            if a not in (" ","  ",""):
+                alist.append(Answer.query.get(a['answerid']))
+        qdata.append([qview[0],alist])
+
+    debug(qdata)
+    data = [user,survey,qdata]
+   
+    return render_template('aview.html', data = data)
 
 #
 #     OTHER
